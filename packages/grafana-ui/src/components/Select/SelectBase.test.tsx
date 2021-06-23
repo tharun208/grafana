@@ -213,4 +213,41 @@ describe('SelectBase', () => {
       });
     });
   });
+
+  describe('When allowCustomValue is set to true', () => {
+    it('Should allow creating a new option', async () => {
+      const spy = jest.fn();
+      render(<SelectBase options={options} onChange={spy} isOpen allowCustomValue />);
+
+      const textBox = screen.getByRole('textbox');
+      userEvent.type(textBox, 'NOT AN OPTION');
+
+      let creatableOption = screen.getByLabelText('Select option');
+      expect(creatableOption).toBeInTheDocument();
+      expect(creatableOption).toHaveTextContent('Create: NOT AN OPTION');
+
+      userEvent.click(creatableOption);
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'NOT AN OPTION',
+          value: 'NOT AN OPTION',
+        })
+      );
+
+      // Should also create options in a case-insensitive way.
+      userEvent.type(textBox, 'not an option');
+
+      creatableOption = screen.getByLabelText('Select option');
+      expect(creatableOption).toBeInTheDocument();
+      expect(creatableOption).toHaveTextContent('Create: not an option');
+
+      userEvent.click(creatableOption);
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'not an option',
+          value: 'not an option',
+        })
+      );
+    });
+  });
 });

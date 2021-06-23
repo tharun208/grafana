@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { default as ReactSelect } from 'react-select';
+import React, { ComponentProps, useCallback } from 'react';
+import { createFilter, default as ReactSelect } from 'react-select';
 import Creatable from 'react-select/creatable';
 import { default as ReactAsyncSelect } from 'react-select/async';
 import { default as AsyncCreatable } from 'react-select/async-creatable';
@@ -149,7 +149,7 @@ export function SelectBase<T>({
 
   let ReactSelectComponent = ReactSelect;
 
-  const creatableProps: any = {};
+  const creatableProps: ComponentProps<typeof Creatable> = {};
   let asyncSelectProps: any = {};
   let selectedValue;
   if (isMulti && loadOptions) {
@@ -218,6 +218,14 @@ export function SelectBase<T>({
     ReactSelectComponent = Creatable as any;
     creatableProps.formatCreateLabel = formatCreateLabel ?? ((input: string) => `Create: ${input}`);
     creatableProps.onCreateOption = onCreateOption;
+    creatableProps.filterOption = createFilter({ ignoreCase: false });
+    // By default react-select is case-insensitive when creating new options ("LOL" and "lOl" have the same value)
+    // The following allows creating options in a case-sensitve way.
+    creatableProps.isValidNewOption = (inputValue, _, options) => {
+      const valueExists = options.some(({ value }) => value === inputValue);
+      // we also don't want users to create "empty" value
+      return !valueExists && inputValue.trim().length > 0;
+    };
   }
 
   // Instead of having AsyncSelect, as a separate component we render ReactAsyncSelect
